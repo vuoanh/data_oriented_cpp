@@ -283,7 +283,7 @@ auto p = vector<unique_ptr<int>>(n);
 
 for (int i=0; i<n;i++){
     p[i] = make_unique<int>(i);
-}
+}rar
 
 for (auto i:p) count << *i << " ";
 
@@ -344,4 +344,49 @@ auto John=Person{.height=0.52, .name="John”};
 ```
 ### Class  
 everything is private by default  
-### Function object  
+
+## Polymorphic classes
+
+### Abstract class and virtual methods
+
+```cpp
+struct Shape{
+	virtural ~Shape() = default; // destructor
+  virtual double get_distance(double, double,
+                              double, double) = 0; // pure virtual method
+}
+```
+
+### Derived class
+
+```cpp
+struct Circle : public Shape {
+	double cx{}, cy{}, radius{};
+  Circle(double x, double y, double r):cx(x), cy(y), radius(r){}; 
+  // explicit contructor is needed
+  vitual double get_distance(double ax, double ay,
+                             double bx, double by)
+  {
+    //compute distance from circle to line a, b
+    return d;
+  }
+}
+
+```
+
+### Vector of pointers to shapes
+
+```cpp
+auto myShape = vector<unique_ptr<Shape>>{};
+myShapes.push_back (make_unique<Circle>(Circle{1, 3, 4}));
+myShape.push_back(make_unique<Circle>(Circle{3,5,1}));
+
+ranges::transform(myShape, distance.begin(), 
+                  [ax, ay, bx, by](auto& shape){
+                  	return shape-> get_distance(ax, ay, bx, by);
+                  }
+                 )
+```
+
+
+
