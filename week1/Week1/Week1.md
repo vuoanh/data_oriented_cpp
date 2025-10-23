@@ -388,5 +388,4 @@ ranges::transform(myShape, distance.begin(),
                  )
 ```
 
-
-
+O
