@@ -205,3 +205,87 @@ auto iPow<double, 0>(double x){
 
 
 
+## Constant expression
+
+- constexpr variable is guaranteed to be initialized at compile time
+- constexpr function can be evaluated at compile time if all of its arguments are constant expressions and the context requires a constant expression
+- consteval function (only) is guaranteed to be evaluated at compile time. Any call to a constevel function must result in a compile-time constant expression.
+
+## Compile-time polymorphism using templates
+
+```cpp
+struct SocialInsect{
+	array<float, 2> vel{};
+  auto k = 1.e-3;
+  void adapt(array<float,2> nbvel){
+    vel[0] += k*(nbVel[0] - vel[0]);
+    vel[1] += k*(nbVel[1] - vel[1]);
+  }
+};
+
+struct AntoSocialInsect{
+  array<float, 2> vel{};
+  void flee(array<float, 2> nbVel){
+    vel[0] = -nbVel[0];
+    vel[1] = -nbVel[1];
+  }
+}
+```
+
+without template specialization, use the `std::is_same_v` and `if constexpr` 
+
+```cpp
+template<typename Insect>
+void react(Insect& insect, array<float, 2> nvVel) {
+  // 'if constexpr' statement can exclude some code 
+  // from the the compilation process
+  if constexpr (is_same_v<Insect, SocialInsect>){
+    insect.adapt(nbVel);
+  }
+  else if constexpr (is_same_v<Insect, AntiSocialInsect>){
+    insect.flee(nbVel);
+  }
+}
+```
+
+## Loop unrolling
+
+original version
+
+```cpp
+template<int N> double stecial(
+	vector<double> & u, int i, counst auto& ind, const auto& weight){
+  auto sum = u[i + ind[0]] * weight[0];
+  for(int i = 1; i < N; ++i) {
+    sum += u[i+ind[i]] * weight[i];
+  }
+  return sum;
+}
+
+```
+
+the unrolled version: instantiate a function template recursively for every loop element
+
+```cpp
+template<int N, typename F> 
+double unrolledSum(F f){
+	if constexpr(N == 0){
+    return f(N);
+  }
+  else{
+    return f(N) + unrolledSum<N -1>(f);
+  }
+}
+
+template<int N> double stecial(
+	vector<double> & u, int i, counst auto& ind, const auto& weight){
+	return unrolledSum<N-1>(
+  	[&u, &ind, &eight, i](auto irel){
+      return weight[irel] * u[i + ind[irel]];
+    }
+  ); 
+}
+```
+
+
+
