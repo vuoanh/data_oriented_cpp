@@ -428,5 +428,31 @@ ranges::for_each(ids, [dt, &u, &nodes](int i) {
 
 ```
 
+## Interface-based development
+
+- need to provide codes that modular and stable among different compounents : implementation (library), interface and the user code.
+- example, the users want to creates different kinds of stencil nodes
+
+```cpp
+// Create new stencils
+struct O6Node{ ... };
+//list of all your stencils
+using Node = variant<O2Node, O6Node, DirichletNode>;
+auto nodes = vector<Node>(N, O6Node{});
+```
+
+- the implementation (library code) provide a function that works with any type of Node
+
+```cpp
+template<typename Node> 
+void iterate(
+	vector<double>& u,
+  vector<Node>& nodes,
+  double dt
+){
+  //implementation
+}
+```
+
 
 
