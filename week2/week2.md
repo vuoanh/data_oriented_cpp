@@ -289,3 +289,144 @@ template<int N> double stecial(
 
 
 
+## Variant
+
+- Is a type of object that can hold a number of different datatypes of a value
+
+```cpp
+#include <variant>
+// num can be int or double
+auto num = variant<int, double>{4};
+
+// int
+cout << "num = " << get<int>(num) << endl; // print 4
+
+// assign a double, no additional memory needed
+num = 3.14159;
+count << "num = " << get<doubel>(num) << endl; // print 3,14159
+
+
+```
+
+- the int and the double value share memory in `num`  => total number of memory needed for both int and double value is 8 bytes (and 4 bytes for type information).
+- For the `variant<int, double, string>` type, the 3 datatypes share the same memory again, since the string pointer takes 32 bytes, and the type info takes 8 bytes, the total size is 40 bytes. => a lot of memory is unused if only `int` is used.
+- When the datatype can only be idetified at run-time, we can use `hold_alternative<type>` to check the datatype.
+
+```cpp
+if(hold_alternative<double>(num)) {
+	cout << "num = " << get<double>(num) << endl;
+}
+```
+
+### Variant and visitor
+
+- Define a class or struct of `visitor` that overloads the function-call `operator()` to each typr held by the variant
+
+```cpp
+struct DivideByTwo{
+	void operator()(int& number){
+		number >>=1;
+	}
+  void operator()(double& number) {
+    number /=2;
+  }
+  void operator()(string& number) {
+  	auto val = stod(number);
+    number = to_string(val/2.);
+  }
+};
+
+// the visit function calls the appropriate overload based on the variant's type
+void divideByTwo(variant<int, double, string>& n){
+  std::visit(DividedByTwo{}, n);
+}
+```
+
+- no need the visitor class/struct if the same function can be applied to muliple types
+
+```cpp
+void didvidedByTwo(variant<int, double> &n){
+	visit([](auto& x){x/=2;}, n);
+}
+```
+
+## Run time polymorphism
+
+- Problem: different nodes require different number of stenciels (3,5 or 1) => different `apply()` functions. 
+- the original polumorphism solution with the base `Node` class and the virtual function `apply()` : need a vector of pointers to the `Node` objects ( the data is saved in heap memory and not consecutive) => not efficient and not supported in GPUs.
+- The solution: `Varient` : elegant and efficient
+
+```cpp
+template<int N, typename F> 
+double unrolledSum(F f){
+	if constexpr(N == 0){
+    return f(N);
+  }
+  else{
+    return f(N) + unrolledSum<N -1>(f);
+  }
+}
+
+template<int N> 
+double stencil(
+	vector<double> & u, int i, counst auto& ind, const auto& weight){
+	return unrolledSum<N-1>(
+  	[&u, &ind, &eight, i](auto irel){
+      return weight[irel] * u[i + ind[irel]];
+    }
+  ); 
+}
+
+// struct of nodes
+struct DirichletNode{
+	double uconst{0.};
+	double apply(vector<double>& u, 
+  						int i, double dt){
+    return uconst;
+  }
+};
+
+struct O2Node{
+  double a{1.};
+  double apply(vector<double>& u, int i, double dt)const{
+    constexpr auto ind2 = array{-1, 0, 1};
+    constexpr auto weight2 = array {1.,-2, 1.};
+    auto delta = stencil<3>(u, i, ind2, weight2);
+    return a * delta * dt;
+  }
+};
+
+struct O4Node{
+  double a{1.};
+  double apply(vector<double>& u, int i, double dt)const{
+    constexpr auto ind4 = array{-2, -1, 0, +1, +2};
+    constexpr auto weight4 = array{
+      -1./12., 4./3., -5./2., 4./3., -1./12.};
+    auto delta = stencil<5>(u, i, ind2, weight2);
+    return a * delta * dt;
+  }
+};
+
+// data initialization
+using Node = variant<O2Node, O4Node, DirichletNode>;
+// Vectors of values instead of pointers
+auto u = vector<double>(M);
+auto nodes = vector<Node>(M, O2Node{});
+node[0] = node[M-1] = DirichletNode{};
+
+auto ids = views::iota(0, M);
+ranges::for_each(ids, [dx = 1./(M+1), &u](int i){
+  u[i] = i * dx *2.0 * numbers::pi_v<float>;
+});
+
+// run one update cycle of the numerical scheme
+ranges::for_each(ids, [dt, &u, &nodes](int i) {
+  visit([i, dt, &u](auto& node){
+    u[i] = node.apply(u, i, dt);
+  }, nodes[i]);
+});
+
+```
+
+
+
