@@ -82,7 +82,7 @@ SRAM vs DRAM:
 
 Memory row: read complete memeory row of ~1kB
 
-## ![Screenshot 2025-11-13 at 4.47.28 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/latency_in_mem_access.png)Latency vs banwidth
+## ![Screenshot 2025-11-13 at 4.47.28 PM](./latency_in_mem_access.png)Latency vs banwidth
 
 Memory bus: transfers data from/to memory at a provided frequency
 
@@ -140,7 +140,7 @@ Machine (3499MB total)
 
 ### Random traversal
 
-![Screenshot 2025-11-17 at 12.11.22 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/random-traversal.png)
+![Screenshot 2025-11-17 at 12.11.22 PM](./random-traversal.png)
 
 Performance on intel Xeon Gold 6240R with 144 GB/s RAM
 
@@ -160,9 +160,9 @@ Types:
 
 for linear transveral 
 
-![Screenshot 2025-11-17 at 1.12.27 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/padding-fills-cache-line.png)
+![Screenshot 2025-11-17 at 1.12.27 PM](./padding-fills-cache-line.png)
 
-![Screenshot 2025-11-17 at 1.16.05 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/two-cache-lines-npad=15.png)
+![Screenshot 2025-11-17 at 1.16.05 PM](./two-cache-lines-npad=15.png)
 
 Rules: accesses memory in a predictable patterns and access things that are close in space
 
@@ -175,7 +175,7 @@ Example: linear traversal :
 - loop transversal : prefetching multiple elements
 - Lopp + optim flag: multiple elements per cpu cycle => parallelism
 
-![Screenshot 2025-11-17 at 3.16.02 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/compiler-vector-instruction.png)
+![Screenshot 2025-11-17 at 3.16.02 PM](./compiler-vector-instruction.png)
 
 Vector operations:
 
@@ -220,17 +220,17 @@ Key Components
 
 LINPACK for benchmarking multiple cores, STREAM benchmark for single core
 
-![Screenshot 2025-11-18 at 5.00.54 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/roofline-performance.png)
+![Screenshot 2025-11-18 at 5.00.54 PM](./roofline-performance.png)
 
 ### How to improve performance:
 
 Compute-bound
 
-![Screenshot 2025-11-18 at 5.10.19 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/rpm-compute-bound.png)
+![Screenshot 2025-11-18 at 5.10.19 PM](./rpm-compute-bound.png)
 
 Memory-bound:
 
 - Poor arithmatic intensity => improve arithmatic intensity in code by reuse data and reduce repeated memory traversals
 - under-utilized banwidth
 
-![Screenshot 2025-11-18 at 5.16.57 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/rpm- under-utilized-banwidth.png)
+![Screenshot 2025-11-18 at 5.16.57 PM](./rpm- under-utilized-banwidth.png)
