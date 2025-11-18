@@ -201,7 +201,36 @@ How to get Vectorized code:
 
 ## FLOPS and AI
 
-FLOPS - float-point operation : only +, -, *
+FLOPS - float-point operation : only +, -, * per second
+
+Arithmetic intensity : FLOPs/byte
 
 ## Roofline performance model
 
+Key Components
+
+  The model creates a 2D plot with:
+  - X-axis: Operational intensity (ops/byte)
+  - Y-axis: Attainable performance (GFLOPS, GOPS, etc.)
+
+  The "roofline" itself consists of two limits:
+
+    1. Memory bandwidth ceiling (diagonal line): Performance limited by how fast you can move data. performance ~ bandwidth * arithmetic intensity
+    2. Peak computational throughput ceiling (horizontal line): Performance limited by maximum compute capacity
+
+LINPACK for benchmarking multiple cores, STREAM benchmark for single core
+
+![Screenshot 2025-11-18 at 5.00.54 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/roofline-performance.png)
+
+### How to improve performance:
+
+Compute-bound
+
+![Screenshot 2025-11-18 at 5.10.19 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/rpm-compute-bound.png)
+
+Memory-bound:
+
+- Poor arithmatic intensity => improve arithmatic intensity in code by reuse data and reduce repeated memory traversals
+- under-utilized banwidth
+
+![Screenshot 2025-11-18 at 5.16.57 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/rpm- under-utilized-banwidth.png)
