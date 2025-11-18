@@ -75,53 +75,133 @@ Typical access times:
 - main memory (DRAM): 110ns
 - External storage (SSD): 50K ns
 
-## Latency vs banwidth
+SRAM vs DRAM:
+
+- SRAM: fast memory, need 4-6 transistors for 1 bit
+- DRAM: slower, 1 transister + 1 capacitor (slow charge+ need refresh ~64ms) for a bit
+
+Memory row: read complete memeory row of ~1kB
+
+## ![Screenshot 2025-11-13 at 4.47.28 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/latency_in_mem_access.png)Latency vs banwidth
+
+Memory bus: transfers data from/to memory at a provided frequency
+
+- multiple channels(interfaces)
+- channel width 
+
+memory latency: time it takes to transfers data (100 ns for main memory bus)
+
+memory banwidth: amount of memory transfered per second (100GB/s)
+
+cache: place to deposit data for intermediate storage
 
 ## Cache memory
 
+- Data in cache is mirror in RAM, can temporarily have different value than RAM data
+
+- Locality in time: memory that is accessed once tends to be accessed again => when data arrived in cache, keep it in cache for a while
+- Locality in space: if an item is accessed in memory, other items at nearby memory address tend to be accessed soon =>  fill the cache with consecutive data to anticipate future data use
+
+Cache line address lookup: associative memory:
+
+- Address and data are stored together
+- content seached for match
+
+How Address Lookup [Tag | Set Index | Offset] - Example with 64-byte cache lines:
+
+  - Offset (6 bits): Identifies which byte within the 64-byte cache line
+    (2^6 = 64)
+  - Set Index (varies): Identifies which cache set to look in
+  - Tag (remaining bits): Identifies which specific memory block is in that
+    set
+
 ### Apple M4 CPU Cache Architecture
 
- #### L1 Cache (Per Core)
+```
+Machine (3499MB total)
+  Package L#0
+    NUMANode L#0 (P#0 3499MB)
+    L2 L#0 (4096KB)
+      L1d L#0 (64KB) + L1i L#0 (128KB) + Core L#0 + PU L#0 (P#0)
+      L1d L#1 (64KB) + L1i L#1 (128KB) + Core L#1 + PU L#1 (P#1)
+      L1d L#2 (64KB) + L1i L#2 (128KB) + Core L#2 + PU L#2 (P#2)
+      L1d L#3 (64KB) + L1i L#3 (128KB) + Core L#3 + PU L#3 (P#3)
+      L1d L#4 (64KB) + L1i L#4 (128KB) + Core L#4 + PU L#4 (P#4)
+      L1d L#5 (64KB) + L1i L#5 (128KB) + Core L#5 + PU L#5 (P#5)
+    L2 L#1 (16MB)
+      L1d L#6 (128KB) + L1i L#6 (192KB) + Core L#6 + PU L#6 (P#6)
+      L1d L#7 (128KB) + L1i L#7 (192KB) + Core L#7 + PU L#7 (P#7)
+      L1d L#8 (128KB) + L1i L#8 (192KB) + Core L#8 + PU L#8 (P#8)
+      L1d L#9 (128KB) + L1i L#9 (192KB) + Core L#9 + PU L#9 (P#9)
+  CoProc(OpenCL) "opencl0d0"
+```
 
-Performance Cores (P-cores):
-  - L1 Instruction Cache: 192 KB per core
-  - L1 Data Cache: 128 KB per core
-  - Total L1: 320 KB per P-core
-  - Latency: ~3-4 cycles
+## Cache latency in practice
 
- Efficiency Cores (E-cores):
-  - L1 Instruction Cache: 128 KB per core
-  - L1 Data Cache: 64 KB per core
-  - Total L1: 192 KB per E-core
-  - Latency: ~3-4 cycles
+### Random traversal
 
-#### L2 Cache (Shared within cluster)
+![Screenshot 2025-11-17 at 12.11.22 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/random-traversal.png)
 
- Performance Cores:
-  - 12 MB shared L2 per P-core cluster
-  - Shared among P-cores in the same cluster
-  - Latency: ~15-20 cycles
+Performance on intel Xeon Gold 6240R with 144 GB/s RAM
 
-  Efficiency Cores:
-  - 4 MB shared L2 per E-core cluster
-  - Latency: ~15-20 cycles
+- 2048 elements => 1.51 ns (data fits into the L1 cache-32KB)
+- L2 cache size: 1MB, latency: 3.4ns
+- L3 cache size: 36.6MB, latency: 21ns
+- 4*10^9 element => 118ns
 
- #### System Level Cache (SLC)
+## Data prefetching
 
-  - Shared across all CPU cores and GPU
-  - Acts as a unified L3-equivalent cache
-  - Size varies by chip variant (typically 16-32 MB)
-  - Latency: ~40-50 cycles
+Types:
 
-#### M4 Configuration Examples
+- Consecutive prefetching: when data is accessed consecutively, prefetching takes place with increasing memory addresses (locality in space)
+- Prefetching with strides: when data is accessed with regular intervals, the prefetching algorithm recognizes strides and prefetching takes place accordingly (locality in time)
 
-| Chip      | P-cores | E-cores | Total L1 | P-core L2 | E-core L2 |
-| --------- | ------- | ------- | -------- | --------- | --------- |
-| M4 (base) | 4       | 6       | ~4.4 MB  | 12 MB     | 4 MB      |
-| M4 Pro    | 10-12   | 4-6     | ~8+ MB   | 24 MB     | 8 MB      |
-| M4 Max    | 14-16   | 4-6     | ~10+ MB  | 36 MB     | 8 MB      |
+### Padding fills cache line: NPAD =7
 
+for linear transveral 
 
+![Screenshot 2025-11-17 at 1.12.27 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/padding-fills-cache-line.png)
 
+![Screenshot 2025-11-17 at 1.16.05 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/two-cache-lines-npad=15.png)
 
+Rules: accesses memory in a predictable patterns and access things that are close in space
+
+## Vector instructions - SIMD
+
+If you have latency issue, you try to compensate by exploiting the bandwidth.
+
+Example: linear traversal :
+
+- loop transversal : prefetching multiple elements
+- Lopp + optim flag: multiple elements per cpu cycle => parallelism
+
+![Screenshot 2025-11-17 at 3.16.02 PM](/Users/vuoanh/Documents/courses/data_oriented_cpp/week3/compiler-vector-instruction.png)
+
+Vector operations:
+
+- mutiple same operations packed in a single CPU instruction
+- SSE (16 B) fits 2 doubles/4 floats
+- AVX (32B) fits 4 doubles/8 floats
+- AVX2 (32B)
+- AVX512 (64B) fits 8 doubles/16 floats
+- M4 (16B)
+
+How to get Vectorized code:
+
+- use compiler directives
+- help compiler identify opportunities ( uniform loops, data structures)
+- write SIMD-capable code (avoid conditions in a loop -> break loop uniformity)
+- assign vector operations manually using intrinsics
+- use libraries like intel oneAPI math kernel lib, eigen C++
+
+## RAM vs CPU
+
+- when the data is small and can fit in the L1 cache, time scales with the number of operations => compute-bound
+- When the data is large and must be stored in the RAM, increases in operations doesnt increase computing time as much => the program is memory bound
+
+## FLOPS and AI
+
+FLOPS - float-point operation : only +, -, *
+
+## Roofline performance model
 
